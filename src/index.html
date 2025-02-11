@@ -1,17 +1,2855 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>Vanilla JavaScript App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Cosmic Balance</title>
+    <meta http-equiv="ScreenOrientation" content="autoRotate:disabled">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        :root {
+            --purple-primary: #8b5cf6;
+            --purple-light: #a78bfa;
+            --bg-dark: #1a1a1a;
+            --bg-darker: #111111;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            text-align: center;
+            z-index: 1001;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: var(--purple-primary);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            letter-spacing: 2px;
+        }
+
+        .header h2 {
+            color: var(--purple-light);
+            font-weight: normal;
+            font-size: 1.2em;
+            margin: 0;
+            font-style: italic;
+        }
+
+        .sliders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .category {
+            background-color: var(--bg-darker);
+            padding: 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .category h3 {
+            color: var(--purple-primary);
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .slider-label {
+            color: #ccc;
+        }
+
+        .slider-value {
+            color: var(--purple-light);
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--purple-primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--purple-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        #statusPanel {
+            background-color: var(--bg-darker);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+
+        .status-item span {
+            color: #ccc;
+            font-size: 0.9em;
+        }
+
+        .status-item div {
+            color: var(--purple-primary);
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .top-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        #statusPanel {
+            flex: 1;
+            background-color: var(--bg-darker);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .ai-panel {
+            flex: 1;
+            background-color: var(--bg-darker);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .ai-description {
+            color: #ccc;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .ai-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #aiPrompt {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--purple-primary);
+            color: white;
+            font-family: Arial, sans-serif;
+            resize: vertical;
+        }
+
+        .ai-button {
+            background-color: var(--purple-primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .ai-button:hover {
+            background-color: var(--purple-light);
+        }
+
+        .ai-status {
+            margin-top: 10px;
+            color: var(--purple-light);
+            font-size: 0.9em;
+            min-height: 20px;
+            transition: opacity 0.3s ease;
+        }
+
+        .category.adjusting {
+            background-color: rgba(139, 92, 246, 0.1);
+        }
+
+        .ai-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        #aiCharacter {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .ai-panel h3 {
+            margin: 0;
+        }
+
+        .timeline-category {
+            position: fixed;
+            left: 20px;
+            bottom: 80px;
+            width: 250px;
+            height: 300px;
+            background-color: var(--bg-darker);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: height 0.3s ease, opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+        .timeline-category.collapsed {
+            height: 45px;
+            overflow: hidden;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 5px 0;
+            gap: 10px;
+        }
+
+        .timeline-toggle {
+            color: var(--purple-light);
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .collapsed .timeline-toggle {
+            transform: rotate(180deg);
+        }
+
+        .timeline-category h3 {
+            color: var(--purple-primary);
+            margin: 0;
+            font-size: 0.9em;
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-darker);
+            padding: 10px 0;
+            z-index: 1;
+        }
+
+        .timeline {
+            position: relative;
+            margin-top: 15px;
+            font-size: 0.85em;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--purple-primary);
+            opacity: 0.3;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 10px;
+            opacity: 0;
+            transform: translateX(20px);
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--purple-primary);
+        }
+
+        .timeline-prompt {
+            color: var(--purple-light);
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            padding: 8px;
+            background-color: rgba(139, 92, 246, 0.1);
+            border-radius: 4px;
+            border-left: 3px solid var(--purple-primary);
+        }
+
+        .timeline-change {
+            color: #ccc;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .timeline-effects {
+            margin-left: 20px;
+            font-size: 0.8em;
+            color: #888;
+            padding-top: 5px;
+        }
+
+        .timeline-effect-increase {
+            color: #4ade80;
+        }
+
+        .timeline-effect-decrease {
+            color: #f87171;
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .timeline-reset:hover {
+            animation: spin 1s linear;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Add overlay styles */
+        .processing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 9999;
+            display: none;
+        }
+
+        /* Completion animation container */
+        .completion-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 300px;
+            height: 300px;
+            z-index: 10000;
+            display: none;
+        }
+
+        /* Animation for the completion effect */
+        @keyframes completionPulse {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            40% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+            60% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        }
+
+        .completion-animation.active {
+            display: block;
+            animation: completionPulse 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        /* Add visualization styles */
+        .view-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+
+        .view-toggle button {
+            background: var(--bg-darker);
+            color: var(--purple-light);
+            border: 1px solid var(--purple-primary);
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-toggle button.active {
+            background: var(--purple-primary);
+            color: white;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background: var(--bg-darker);
+        }
+
+        .slider-view {
+            transition: opacity 0.3s ease;
+            padding-top: 20px;
+        }
+
+        /* Update tooltip styles */
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            min-width: 150px;
+        }
+
+        .tooltip-title {
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .tooltip-value {
+            color: #ffeb3b;
+            font-size: 14px;
+        }
+
+        .map-menu {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(26, 26, 26, 0.95);
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            z-index: 1000;
+            border-right: 2px solid var(--purple-primary);
+            display: none; /* Hide by default */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .map-type-btn {
+            display: block;
+            background: transparent;
+            color: white;
+            border: 1px solid var(--purple-primary);
+            padding: 10px 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 150px;
+            text-align: left;
+        }
+
+        .map-type-btn:hover {
+            background: var(--purple-primary);
+        }
+
+        .map-type-btn.active {
+            background: var(--purple-primary);
+        }
+
+        .node-list-panel {
+            position: fixed;
+            right: 20px;
+            top: 100px;
+            bottom: 20px;
+            width: 250px;
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            display: none; /* Hide by default */
+        }
+
+        .node-list-header {
+            color: var(--purple-light);
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .node-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .node-list-item {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            gap: 10px;
+        }
+
+        .node-list-item:hover {
+            background: rgba(139, 92, 246, 0.2);
+        }
+
+        .node-list-item.active {
+            background: rgba(139, 92, 246, 0.3);
+            border-left: 3px solid var(--purple-primary);
+        }
+
+        .node-list-item-name {
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .node-list-item-value {
+            color: var(--purple-light);
+            font-size: 0.9em;
+        }
+
+        .node-list-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid var(--purple-primary);
+            background: transparent;
+            color: var(--purple-light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+
+        .node-list-btn:hover {
+            background: var(--purple-primary);
+            color: white;
+        }
+
+        .node-details {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Add footer styles */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(17, 17, 17, 0.9);
+            backdrop-filter: blur(5px);
+            padding: 15px 0;
+            text-align: center;
+            border-top: 1px solid rgba(139, 92, 246, 0.2);
+            z-index: 1000;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        .footer-divider {
+            color: var(--purple-primary);
+            margin: 0 10px;
+        }
+
+        .footer-highlight {
+            color: var(--purple-light);
+            font-weight: 500;
+        }
+
+        .footer-university {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .footer-location {
+            font-style: italic;
+            color: #999;
+        }
+
+        /* Orientation overlay styles */
+        .orientation-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .orientation-icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            animation: rotate 2s infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+            100% { transform: rotate(90deg); }
+        }
+
+        .orientation-message {
+            color: white;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        /* Mobile-specific adjustments */
+        @media screen and (max-width: 768px) {
+            .slider-view {
+                padding: 10px;
+            }
+
+            .sliders-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top-section {
+                flex-direction: column;
+            }
+
+            .node-list-panel {
+                width: auto;
+                right: 10px;
+                left: 10px;
+            }
+
+            .map-menu {
+                left: 10px;
+            }
+        }
+    </style>
 </head>
-
 <body>
-  <main>
-    <h1>Vanilla JavaScript App</h1>
-  </main>
-</body>
+    <!-- Add orientation overlay -->
+    <div class="orientation-overlay" id="orientationOverlay">
+        <svg class="orientation-icon" viewBox="0 0 24 24" fill="white">
+            <path d="M16.48 2.52c3.27 1.55 5.61 4.72 5.97 8.48h1.5C23.44 4.84 18.29 0 12 0l-.66.03 3.81 3.81 1.33-1.32zm-6.25-.77c-.59-.59-1.54-.59-2.12 0L1.75 8.11c-.59.59-.59 1.54 0 2.12l12.02 12.02c.59.59 1.54.59 2.12 0l6.36-6.36c.59-.59.59-1.54 0-2.12L10.23 1.75zm4.6 19.44L2.81 9.17l6.36-6.36 12.02 12.02-6.36 6.36zm-7.31.29C4.25 19.94 1.91 16.76 1.55 13H.05C.56 19.16 5.71 24 12 24l.66-.03-3.81-3.81-1.33 1.32z"/>
+        </svg>
+        <div class="orientation-message">Please rotate your device to landscape mode</div>
+        <div class="orientation-submessage">For the best experience</div>
+    </div>
 
+    <!-- Add footer HTML -->
+    <div class="footer">
+        <div class="footer-content">
+            <span>Created by</span>
+            <span class="footer-highlight">Godwin Chigozirim Anyaso</span>
+            <span class="footer-divider">|</span>
+            <span class="footer-university">European University of Lefke</span>
+            <span class="footer-divider">|</span>
+            <span class="footer-location">Northern Turkish Republic of Cyprus</span>
+        </div>
+    </div>
+
+    
+
+    <!-- Add these elements after the header -->
+    <div class="processing-overlay" id="processingOverlay"></div>
+    <div class="completion-animation" id="completionAnimation"></div>
+
+    <!-- Add view toggle buttons -->
+    <div class="view-toggle">
+        <button class="active" data-view="sliders">Slider View</button>
+        <button data-view="globe">Globe View</button>
+    </div>
+
+    <div id="canvas-container"></div>
+    <div class="tooltip"></div>
+
+    <div class="slider-view">
+        <div class="header" id="mainHeader">
+            <h1>The World Engine</h1>
+            <h2>"Tuning Global Harmonies"</h2>
+        </div>
+        <div class="top-section">
+            <div id="statusPanel">
+                <h3>System Status</h3>
+                <div class="status-grid" id="statusGrid">
+                    <!-- Status items will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <div id="aiPanel" class="ai-panel">
+                    <div class="ai-panel-header">
+                        <div id="aiCharacter"></div>
+                <h3>AI World Architect</h3>
+                    </div>
+                <p class="ai-description">Describe the type of world you want to create, and the AI will adjust the parameters accordingly while respecting their relationships.</p>
+                <div class="ai-input-container">
+                    <textarea id="aiPrompt" placeholder="Example: 'Create a perfect world with maximum sustainability' or 'Design a highly technological society'"></textarea>
+                    <button id="submitAiPrompt" class="ai-button">Generate World</button>
+                </div>
+                <div id="aiStatus" class="ai-status"></div>
+            </div>
+        </div>
+
+        <div class="sliders-grid" id="slidersGrid">
+            <!-- Sliders will be dynamically inserted here -->
+                <div class="category timeline-category" id="timelineCategory">
+                    <div class="timeline-header" id="timelineHeader">
+                        <h3>Timeline</h3>
+                        <span class="timeline-toggle">▼</span>
+                    </div>
+                    <div class="timeline" id="timeline">
+                        <!-- Timeline items will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add the menu HTML -->
+        <div class="map-menu">
+            <button class="map-type-btn active" data-type="default">Default View</button>
+            <button class="map-type-btn" data-type="category">Category Groups</button>
+            <button class="map-type-btn" data-type="influence">Influence Web</button>
+            <button class="map-type-btn" data-type="clusters">Value Clusters</button>
+        </div>
+
+        <!-- Add the node list panel -->
+        <div class="node-list-panel">
+            <div class="node-list-header">
+                Click any node to focus on the globe
+            </div>
+            <div class="node-list" id="nodeList">
+                <!-- Node items will be added here dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Node initial values and relationships from our previous data structures
+        const initialNodes = {
+    // Environmental Factors
+    "Global Temperature": 62,  // Representing current warming trends
+    "Biodiversity": 48,       // Current species diversity levels
+    "Ocean Health": 43,       // Marine ecosystem health
+    "Air Quality": 52,        // Global air quality average
+    "Forest Coverage": 31,    // Remaining forest coverage
+    "Fresh Water Access": 58, // Clean water availability
+    "Soil Quality": 45,       // Agricultural soil health
+    "Arctic Ice Coverage": 35,// Remaining arctic ice
+    "Coral Reef Health": 30,  // Coral ecosystem status
+    "Carbon Emissions": 73,   // Current emission levels
+
+    // Social Factors
+    "Education Access": 65,   // Global education availability
+    "Healthcare Access": 58,  // Medical care accessibility
+    "Income Equality": 37,    // Wealth distribution
+    "Gender Equality": 54,    // Gender rights and opportunities
+    "Food Security": 61,      // Food availability
+    "Social Mobility": 48,    // Class movement possibility
+    "Cultural Diversity": 68, // Cultural preservation
+    "Digital Access": 62,     // Internet/tech accessibility
+    "Housing Affordability": 45, // Housing access
+    "Social Trust": 51,       // Community cohesion
+
+    // Economic Factors
+    "Employment Rate": 58,    // Global employment levels
+    "Economic Growth": 52,    // GDP growth rates
+    "Market Stability": 55,   // Financial market health
+    "Innovation Rate": 72,    // Technological advancement
+    "Trade Balance": 50,      // International trade equity
+    "Small Business Viability": 47, // SME success rate
+    "Consumer Confidence": 54, // Public economic outlook
+    "Infrastructure Quality": 56, // Built environment condition
+    "Energy Security": 63,    // Energy supply stability
+    "Resource Efficiency": 44, // Resource use optimization
+
+    // Political Factors
+    "Democratic Freedom": 58, // Democratic institution strength
+    "Government Transparency": 52, // Political openness
+    "International Cooperation": 61, // Global collaboration
+    "Peace Index": 65,        // Absence of conflict
+    "Rule of Law": 59,        // Legal system effectiveness
+    "Civil Rights": 63,       // Individual freedoms
+    "Political Stability": 57, // Government stability
+    "Diplomatic Relations": 60, // International relations
+    "Local Governance": 54,   // Municipal effectiveness
+    "Policy Innovation": 58,  // Government adaptability
+
+    // Technological Factors
+    "Digital Security": 56,   // Cybersecurity levels
+    "AI Development": 78,     // AI advancement
+    "Renewable Tech": 65,     // Clean energy technology
+    "Biotech Progress": 70,   // Biological innovation
+    "Space Technology": 68,   // Space exploration capability
+    "Information Access": 75, // Knowledge availability
+    "Digital Privacy": 42,    // Personal data protection
+    "Tech Ethics": 45,        // Ethical tech development
+    "Scientific Research": 73, // Research advancement
+    "Digital Infrastructure": 64, // Tech backbone quality
+
+    // Health Factors
+    "Mental Health": 48,      // Psychological wellbeing
+    "Physical Activity": 45,  // Exercise levels
+    "Disease Prevention": 62, // Health preparation
+    "Healthcare Quality": 59, // Medical care standards
+    "Nutrition Levels": 54,   // Diet quality
+    "Addiction Rates": 58,    // Substance use (inverse)
+    "Life Expectancy": 68,    // Longevity
+    "Child Health": 64,       // Youth wellbeing
+    "Elder Care": 52,         // Senior citizen care
+    "Public Health Education": 57, // Health awareness
+
+    // Cultural Factors
+    "Arts Funding": 48,       // Cultural investment
+    "Heritage Preservation": 52, // Historical protection
+    "Media Diversity": 56,    // Information variety
+    "Sports Participation": 58, // Athletic engagement
+    "Creative Expression": 63, // Artistic freedom
+    "Traditional Knowledge": 45, // Ancient wisdom preservation
+    "Cultural Exchange": 67,   // Cross-cultural interaction
+    "Entertainment Access": 72, // Recreation availability
+    "Language Diversity": 51,  // Linguistic preservation
+    "Religious Freedom": 61,   // Faith practice rights
+
+    // Urban Factors
+    "Public Transportation": 54, // Transit systems
+    "Green Spaces": 47,       // Urban nature
+    "Urban Planning": 56,     // City design
+    "Waste Management": 52,   // Garbage handling
+    "Traffic Flow": 48,       // Transportation efficiency
+    "Building Safety": 63,    // Construction standards
+    "Noise Pollution": 58,    // Urban quiet (inverse)
+    "Public Space": 51,       // Community areas
+    "Urban Agriculture": 38,  // City farming
+    "Smart City Integration": 59, // Tech city solutions
+
+    // Community Factors
+    "Volunteer Rate": 45,     // Community service
+    "Social Services": 53,    // Support systems
+    "Community Centers": 49,  // Local facilities
+    "Youth Programs": 51,     // Young people support
+    "Elder Integration": 47,  // Senior inclusion
+    "Neighborhood Safety": 58, // Local security
+    "Civic Engagement": 46,   // Community participation
+    "Local Business": 52,     // Community commerce
+    "Public Events": 54,      // Community gatherings
+    "Social Inclusion": 56,   // Diversity integration
+
+    // Future Factors
+    "Space Colonization": 28, // Off-world settlement
+    "Genetic Innovation": 65, // DNA technology
+    "Quantum Computing": 45,  // Quantum tech progress
+    "Virtual Reality": 58,    // VR development
+    "Clean Energy": 52,       // Renewable power
+    "Robot Integration": 54,  // Automation adoption
+    "Brain-Computer Interface": 35, // Neural tech
+    "Longevity Research": 48, // Age extension
+    "Weather Control": 25,    // Climate manipulation
+    "Artificial Life": 32,    // Synthetic biology
+
+    // Resource Factors
+    "Energy Storage": 55,     // Power retention
+    "Rare Materials": 43,     // Critical resources
+    "Food Production": 59,    // Agricultural output
+    "Water Management": 51,   // Hydro efficiency
+    "Mineral Reserves": 46,   // Mining resources
+    "Land Use": 44,          // Territory utilization
+    "Marine Resources": 41,   // Ocean resources
+    "Recycling Efficiency": 48, // Material reuse
+    "Alternative Materials": 56, // New resources
+    "Waste Reduction": 47     // Garbage minimization
+};
+
+
+        const nodeRelationships = {
+    // ENVIRONMENTAL FACTORS
+    "Global Temperature": {
+        increases: ["Carbon Emissions", "Natural Disasters", "Migration", "Food Insecurity", "Energy Usage"],
+        decreases: ["Biodiversity", "Arctic Ice Coverage", "Food Production", "Water Management", "Forest Coverage"]
+    },
+    "Biodiversity": {
+        increases: ["Ecosystem Stability", "Food Security", "Forest Coverage", "Ocean Health", "Soil Quality"],
+        decreases: ["Species Extinction", "Crop Vulnerability", "Disease Spread"]
+    },
+    "Ocean Health": {
+        increases: ["Biodiversity", "Food Security", "Marine Resources", "Climate Stability", "Tourism"],
+        decreases: ["Pollution", "Carbon Emissions", "Coastal Erosion"]
+    },
+    "Air Quality": {
+        increases: ["Public Health", "Life Expectancy", "Tourism", "Outdoor Activities", "Property Values"],
+        decreases: ["Healthcare Costs", "Respiratory Issues", "Urban Pollution"]
+    },
+    "Forest Coverage": {
+        increases: ["Biodiversity", "Air Quality", "Water Management", "Soil Quality", "Carbon Sequestration"],
+        decreases: ["Global Temperature", "Soil Erosion", "Flash Floods"]
+    },
+    "Fresh Water Access": {
+        increases: ["Public Health", "Agriculture", "Economic Growth", "Quality of Life", "Social Stability"],
+        decreases: ["Disease Spread", "Poverty", "Migration"]
+    },
+    "Soil Quality": {
+        increases: ["Food Production", "Biodiversity", "Agriculture", "Forest Coverage", "Carbon Sequestration"],
+        decreases: ["Food Insecurity", "Land Degradation", "Agricultural Costs"]
+    },
+    "Arctic Ice Coverage": {
+        increases: ["Climate Stability", "Marine Life", "Indigenous Culture", "Global Cooling"],
+        decreases: ["Sea Level Rise", "Coastal Flooding", "Climate Change"]
+    },
+    "Coral Reef Health": {
+        increases: ["Marine Biodiversity", "Tourism", "Coastal Protection", "Fish Population", "Local Economy"],
+        decreases: ["Coastal Erosion", "Marine Species Loss", "Fishing Industry Decline"]
+    },
+    "Carbon Emissions": {
+        increases: ["Global Temperature", "Ocean Acidification", "Air Pollution", "Health Issues", "Climate Change"],
+        decreases: ["Air Quality", "Ocean Health", "Forest Health", "Agricultural Yield"]
+    },
+
+    // SOCIAL FACTORS
+    "Education Access": {
+        increases: ["Employment Rate", "Innovation Rate", "Social Mobility", "Income Equality", "Life Quality"],
+        decreases: ["Poverty", "Social Inequality", "Crime Rate"]
+    },
+    "Healthcare Access": {
+        increases: ["Life Expectancy", "Workforce Productivity", "Quality of Life", "Mental Health", "Economic Growth"],
+        decreases: ["Mortality Rate", "Healthcare Costs", "Social Inequality"]
+    },
+    "Income Equality": {
+        increases: ["Social Mobility", "Education Access", "Healthcare Access", "Social Stability", "Consumer Confidence"],
+        decreases: ["Crime Rate", "Social Unrest", "Political Polarization"]
+    },
+    "Gender Equality": {
+        increases: ["Economic Growth", "Education Access", "Innovation Rate", "Social Progress", "Workforce Participation"],
+        decreases: ["Discrimination", "Wage Gap", "Social Inequality"]
+    },
+    "Food Security": {
+        increases: ["Public Health", "Social Stability", "Education Performance", "Economic Growth", "Quality of Life"],
+        decreases: ["Malnutrition", "Social Unrest", "Migration"]
+    },
+    "Social Mobility": {
+        increases: ["Economic Growth", "Innovation Rate", "Education Investment", "Social Stability", "Consumer Confidence"],
+        decreases: ["Income Inequality", "Social Unrest", "Political Polarization"]
+    },
+    "Cultural Diversity": {
+        increases: ["Innovation Rate", "Tourism", "Arts Funding", "Social Tolerance", "Cultural Exchange"],
+        decreases: ["Discrimination", "Social Conflict", "Cultural Homogenization"]
+    },
+    "Digital Access": {
+        increases: ["Education Access", "Economic Opportunity", "Innovation Rate", "Information Access", "Remote Work"],
+        decreases: ["Digital Divide", "Social Inequality", "Information Gap"]
+    },
+    "Housing Affordability": {
+        increases: ["Quality of Life", "Social Stability", "Mental Health", "Economic Growth", "Consumer Confidence"],
+        decreases: ["Homelessness", "Social Inequality", "Financial Stress"]
+    },
+    "Social Trust": {
+        increases: ["Economic Growth", "Civic Engagement", "Innovation Rate", "Political Stability", "Mental Health"],
+        decreases: ["Crime Rate", "Transaction Costs", "Social Conflict"]
+    },
+
+    // ECONOMIC FACTORS
+    "Employment Rate": {
+        increases: ["Economic Growth", "Consumer Confidence", "Tax Revenue", "Social Stability", "Mental Health"],
+        decreases: ["Poverty", "Crime Rate", "Social Services Burden"]
+    },
+    "Economic Growth": {
+        increases: ["Employment Rate", "Innovation Rate", "Tax Revenue", "Living Standards", "Infrastructure Quality"],
+        decreases: ["Poverty", "Social Inequality", "Economic Instability"]
+    },
+    "Market Stability": {
+        increases: ["Investment", "Economic Growth", "Consumer Confidence", "Business Development", "Innovation Rate"],
+        decreases: ["Financial Risk", "Economic Uncertainty", "Market Volatility"]
+    },
+    "Innovation Rate": {
+        increases: ["Economic Growth", "Productivity", "Competitiveness", "Job Creation", "Living Standards"],
+        decreases: ["Traditional Industries", "Manual Labor", "Market Stability"]
+    },
+    "Trade Balance": {
+        increases: ["Economic Growth", "Currency Strength", "Job Creation", "Foreign Investment", "Market Stability"],
+        decreases: ["Trade Deficit", "Economic Dependency", "Currency Volatility"]
+    },
+    "Small Business Viability": {
+        increases: ["Employment Rate", "Economic Diversity", "Local Economy", "Innovation Rate", "Community Vitality"],
+        decreases: ["Market Concentration", "Economic Inequality", "Urban Decay"]
+    },
+    "Consumer Confidence": {
+        increases: ["Economic Growth", "Retail Sales", "Investment", "Employment Rate", "Market Stability"],
+        decreases: ["Savings Rate", "Economic Uncertainty", "Market Volatility"]
+    },
+    "Infrastructure Quality": {
+        increases: ["Economic Growth", "Public Safety", "Quality of Life", "Business Efficiency", "Property Values"],
+        decreases: ["Transportation Costs", "Accident Rates", "Economic Inefficiency"]
+    },
+    "Energy Security": {
+        increases: ["Economic Stability", "Industrial Production", "National Security", "Investment", "Innovation Rate"],
+        decreases: ["Energy Costs", "Economic Vulnerability", "Political Dependency"]
+    },
+    "Resource Efficiency": {
+        increases: ["Sustainability", "Economic Growth", "Innovation Rate", "Competitiveness", "Environmental Health"],
+        decreases: ["Waste Production", "Resource Depletion", "Environmental Impact"]
+    },
+
+    // POLITICAL FACTORS
+    "Democratic Freedom": {
+        increases: ["Civil Rights", "Political Stability", "Economic Growth", "Innovation Rate", "Social Trust"],
+        decreases: ["Authoritarianism", "Corruption", "Social Unrest"]
+    },
+    "Government Transparency": {
+        increases: ["Public Trust", "Political Stability", "Foreign Investment", "Economic Efficiency", "Civil Engagement"],
+        decreases: ["Corruption", "Political Unrest", "Economic Inefficiency"]
+    },
+    "International Cooperation": {
+        increases: ["Economic Growth", "Innovation Rate", "Peace Index", "Cultural Exchange", "Trade Balance"],
+        decreases: ["International Conflict", "Trade Barriers", "Political Isolation"]
+    },
+    "Peace Index": {
+        increases: ["Economic Growth", "Foreign Investment", "Tourism", "Quality of Life", "Innovation Rate"],
+        decreases: ["Military Spending", "Social Unrest", "Economic Instability"]
+    },
+    "Rule of Law": {
+        increases: ["Economic Stability", "Foreign Investment", "Social Trust", "Property Rights", "Business Confidence"],
+        decreases: ["Crime Rate", "Corruption", "Social Instability"]
+    },
+    "Civil Rights": {
+        increases: ["Social Progress", "Innovation Rate", "Economic Participation", "Quality of Life", "Social Stability"],
+        decreases: ["Discrimination", "Social Conflict", "Political Unrest"]
+    },
+    "Political Stability": {
+        increases: ["Economic Growth", "Foreign Investment", "Social Trust", "Innovation Rate", "Market Stability"],
+        decreases: ["Economic Uncertainty", "Social Unrest", "Capital Flight"]
+    },
+    "Diplomatic Relations": {
+        increases: ["International Trade", "Cultural Exchange", "Tourism", "Innovation Rate", "Peace Index"],
+        decreases: ["International Conflict", "Trade Barriers", "Political Tension"]
+    },
+    "Local Governance": {
+        increases: ["Public Services", "Community Engagement", "Quality of Life", "Urban Planning", "Resource Efficiency"],
+        decreases: ["Urban Problems", "Social Inequality", "Public Dissatisfaction"]
+    },
+    "Policy Innovation": {
+        increases: ["Government Efficiency", "Public Services", "Economic Growth", "Social Progress", "Environmental Protection"],
+        decreases: ["Bureaucratic Inefficiency", "Policy Stagnation", "Public Problems"]
+    },
+
+    // TECHNOLOGICAL FACTORS
+    "Digital Security": {
+        increases: ["Online Commerce", "Digital Trust", "Innovation Rate", "Business Confidence", "Privacy Protection"],
+        decreases: ["Cybercrime", "Data Breaches", "Digital Vulnerability"]
+    },
+    "AI Development": {
+        increases: ["Productivity", "Innovation Rate", "Healthcare Quality", "Scientific Research", "Resource Efficiency"],
+        decreases: ["Traditional Employment", "Privacy", "Human Decision-Making"]
+    },
+    "Renewable Tech": {
+        increases: ["Energy Security", "Environmental Health", "Innovation Rate", "Green Jobs", "Economic Sustainability"],
+        decreases: ["Carbon Emissions", "Energy Costs", "Environmental Impact"]
+    },
+    "Biotech Progress": {
+        increases: ["Healthcare Quality", "Food Production", "Scientific Knowledge", "Life Expectancy", "Disease Prevention"],
+        decreases: ["Disease Impact", "Healthcare Costs", "Agricultural Vulnerability"]
+    },
+    "Space Technology": {
+        increases: ["Scientific Knowledge", "Innovation Rate", "Communication Technology", "Resource Discovery", "International Cooperation"],
+        decreases: ["Resource Limitations", "Communication Barriers", "Technology Gap"]
+    },
+    "Information Access": {
+        increases: ["Education Quality", "Innovation Rate", "Democratic Participation", "Social Mobility", "Market Efficiency"],
+        decreases: ["Information Inequality", "Digital Divide", "Misinformation"]
+    },
+    "Digital Privacy": {
+        increases: ["Online Trust", "Digital Commerce", "Personal Security", "Democracy", "Innovation Rate"],
+        decreases: ["Surveillance", "Data Exploitation", "Privacy Violations"]
+    },
+    "Tech Ethics": {
+        increases: ["Public Trust", "Innovation Acceptance", "Social Benefit", "Responsible Development", "Tech Adoption"],
+        decreases: ["Tech Misuse", "Social Harm", "Public Resistance"]
+    },
+    "Scientific Research": {
+        increases: ["Innovation Rate", "Healthcare Quality", "Economic Growth", "Environmental Solutions", "Quality of Life"],
+        decreases: ["Scientific Ignorance", "Technology Gap", "Development Barriers"]
+    },
+    "Digital Infrastructure": {
+        increases: ["Economic Growth", "Communication", "Innovation Rate", "Remote Work", "Education Access"],
+        decreases: ["Digital Divide", "Economic Inequality", "Information Gap"]
+    },
+
+    // HEALTH FACTORS
+    "Mental Health": {
+        increases: ["Productivity", "Quality of Life", "Social Relationships", "Workforce Participation", "Innovation Rate"],
+        decreases: ["Healthcare Costs", "Social Problems", "Economic Loss"]
+    },
+    "Physical Activity": {
+        increases: ["Public Health", "Mental Health", "Productivity", "Life Expectancy", "Healthcare Savings"],
+        decreases: ["Healthcare Costs", "Obesity Rates", "Chronic Disease"]
+    },
+    "Disease Prevention": {
+        increases: ["Public Health", "Life Expectancy", "Workforce Productivity", "Healthcare Efficiency", "Economic Growth"],
+        decreases: ["Healthcare Costs", "Mortality Rate", "Economic Loss"]
+    },
+    "Healthcare Quality": {
+        increases: ["Life Expectancy", "Public Health", "Workforce Productivity", "Quality of Life", "Social Progress"],
+        decreases: ["Mortality Rate", "Health Inequality", "Economic Loss"]
+    },
+    "Nutrition Levels": {
+        increases: ["Public Health", "Mental Health", "Child Development", "Work Productivity", "Life Expectancy"],
+        decreases: ["Healthcare Costs", "Obesity Rates", "Learning Difficulties"]
+    },
+    "Addiction Rates": {
+        increases: ["Healthcare Costs", "Crime Rate", "Social Problems", "Economic Loss", "Mental Health Issues"],
+        decreases: ["Workforce Productivity", "Public Health", "Social Stability"]
+    },
+    "Life Expectancy": {
+        increases: ["Population Age", "Healthcare Demands", "Pension Costs", "Social Progress", "Quality of Life"],
+        decreases: ["Workforce Turnover", "Healthcare Costs", "Social Security Burden"]
+    },
+    "Child Health": {
+        increases: ["Education Performance", "Future Workforce", "Social Progress", "Economic Potential", "Life Quality"],
+        decreases: ["Healthcare Costs", "Social Problems", "Economic Burden"]
+    },
+    "Elder Care": {
+        increases: ["Life Quality", "Social Stability", "Healthcare Employment", "Family Support", "Social Services"],
+        decreases: ["Elder Poverty", "Healthcare Costs", "Social Isolation"]
+    },
+    "Public Health Education": {
+        increases: ["Disease Prevention", "Health Awareness", "Life Expectancy", "Healthcare Efficiency", "Quality of Life"],
+        decreases: ["Healthcare Costs", "Preventable Disease", "Health Risks"]
+    },
+
+    // CULTURAL FACTORS
+    "Arts Funding": {
+        increases: ["Cultural Vitality", "Tourism", "Creative Industries", "Quality of Life", "Innovation Rate"],
+        decreases: ["Cultural Decline", "Creative Brain Drain", "Social Monotony"]
+    },
+    "Heritage Preservation": {
+        increases: ["Cultural Identity", "Tourism", "Education Value", "Social Cohesion", "Local Pride"],
+        decreases: ["Cultural Loss", "Historical Amnesia", "Community Disconnection"]
+    },
+    "Media Diversity": {
+        increases: ["Information Access", "Democratic Discourse", "Cultural Understanding", "Social Awareness", "Innovation Rate"],
+        decreases: ["Information Bias", "Cultural Homogenization", "Social Division"]
+    },
+    "Sports Participation": {
+        increases: ["Public Health", "Social Cohesion", "Youth Development", "Community Pride", "Economic Activity"],
+        decreases: ["Healthcare Costs", "Social Isolation", "Youth Problems"]
+    },
+    "Creative Expression": {
+        increases: ["Cultural Innovation", "Tourism", "Quality of Life", "Social Progress", "Economic Diversity"],
+        decreases: ["Cultural Stagnation", "Social Conformity", "Creative Limitation"]
+    },
+    "Traditional Knowledge": {
+        increases: ["Cultural Diversity", "Sustainable Practices", "Social Identity", "Environmental Wisdom", "Innovation Rate"],
+        decreases: ["Cultural Loss", "Environmental Damage", "Social Disconnection"]
+    },
+    "Cultural Exchange": {
+        increases: ["Innovation Rate", "Tourism", "International Understanding", "Peace Index", "Economic Growth"],
+        decreases: ["Cultural Isolation", "Social Prejudice", "International Tension"]
+    },
+    "Entertainment Access": {
+        increases: ["Quality of Life", "Cultural Participation", "Social Cohesion", "Economic Activity", "Innovation Rate"],
+        decreases: ["Social Isolation", "Cultural Division", "Entertainment Inequality"]
+    },
+    "Language Diversity": {
+        increases: ["Cultural Richness", "Cognitive Development", "International Communication", "Tourism", "Educational Value"],
+        decreases: ["Cultural Homogenization", "Communication Barriers", "Social Division"]
+    },
+    "Religious Freedom": {
+        increases: ["Social Harmony", "Cultural Diversity", "Civil Rights", "Social Stability", "Personal Wellbeing"],
+        decreases: ["Social Conflict", "Discrimination", "Cultural Tension"]
+    },
+
+    // URBAN FACTORS
+    "Public Transportation": {
+        increases: ["Urban Mobility", "Air Quality", "Economic Access", "Social Equality", "Energy Efficiency"],
+        decreases: ["Traffic Congestion", "Carbon Emissions", "Transportation Costs"]
+    },
+    "Green Spaces": {
+        increases: ["Public Health", "Property Values", "Biodiversity", "Mental Health", "Air Quality"],
+        decreases: ["Urban Heat", "Air Pollution", "Stress Levels"]
+    },
+    "Urban Planning": {
+        increases: ["Quality of Life", "Economic Efficiency", "Public Safety", "Social Integration", "Environmental Health"],
+        decreases: ["Urban Sprawl", "Traffic Congestion", "Social Isolation"]
+    },
+    "Waste Management": {
+        increases: ["Public Health", "Environmental Quality", "Resource Efficiency", "Urban Cleanliness", "Tourism"],
+        decreases: ["Pollution", "Disease Risk", "Environmental Damage"]
+    },
+    "Traffic Flow": {
+        increases: ["Economic Efficiency", "Air Quality", "Quality of Life", "Urban Mobility", "Productivity"],
+        decreases: ["Stress Levels", "Pollution", "Economic Loss"]
+    },
+    "Building Safety": {
+        increases: ["Public Safety", "Property Values", "Insurance Efficiency", "Social Security", "Investment"],
+        decreases: ["Accident Rates", "Insurance Costs", "Urban Risks"]
+    },
+    "Noise Pollution": {
+        increases: ["Stress Levels", "Health Issues", "Property Devaluation", "Sleep Disorders", "Social Tension"],
+        decreases: ["Quality of Life", "Mental Health", "Work Productivity"]
+    },
+    "Public Space": {
+        increases: ["Social Interaction", "Community Health", "Cultural Activities", "Quality of Life", "Economic Activity"],
+        decreases: ["Social Isolation", "Urban Stress", "Crime Rates"]
+    },
+    "Urban Agriculture": {
+        increases: ["Food Security", "Community Engagement", "Environmental Health", "Education", "Local Economy"],
+        decreases: ["Food Miles", "Urban Heat", "Food Costs"]
+    },
+    "Smart City Integration": {
+        increases: ["Urban Efficiency", "Quality of Life", "Resource Management", "Public Safety", "Innovation Rate"],
+        decreases: ["Urban Problems", "Resource Waste", "Operating Costs"]
+    },
+
+    // COMMUNITY FACTORS
+    "Volunteer Rate": {
+        increases: ["Social Capital", "Community Health", "Skill Development", "Public Services", "Mental Health"],
+        decreases: ["Social Services Costs", "Social Isolation", "Community Needs"]
+    },
+    "Social Services": {
+        increases: ["Public Health", "Social Stability", "Quality of Life", "Education Access", "Community Safety"],
+        decreases: ["Poverty", "Social Problems", "Healthcare Costs"]
+    },
+    "Community Centers": {
+        increases: ["Social Cohesion", "Education Access", "Public Health", "Cultural Activities", "Youth Development"],
+        decreases: ["Social Isolation", "Youth Crime", "Community Division"]
+    },
+    "Youth Programs": {
+        increases: ["Education Outcomes", "Social Skills", "Community Safety", "Future Employment", "Social Mobility"],
+        decreases: ["Youth Crime", "Social Problems", "Education Gaps"]
+    },
+    "Elder Integration": {
+        increases: ["Social Cohesion", "Knowledge Transfer", "Mental Health", "Community Stability", "Quality of Life"],
+        decreases: ["Elder Isolation", "Healthcare Costs", "Social Division"]
+    },
+    "Neighborhood Safety": {
+        increases: ["Property Values", "Community Activity", "Social Trust", "Economic Investment", "Quality of Life"],
+        decreases: ["Crime Rates", "Social Fear", "Property Costs"]
+    },
+    "Civic Engagement": {
+        increases: ["Democratic Health", "Community Development", "Social Capital", "Policy Quality", "Public Services"],
+        decreases: ["Political Apathy", "Social Problems", "Government Inefficiency"]
+    },
+    "Local Business": {
+        increases: ["Economic Diversity", "Job Creation", "Community Character", "Tax Revenue", "Social Stability"],
+        decreases: ["Economic Leakage", "Community Decline", "Job Loss"]
+    },
+    "Public Events": {
+        increases: ["Community Cohesion", "Cultural Vitality", "Economic Activity", "Tourism", "Social Capital"],
+        decreases: ["Social Isolation", "Cultural Stagnation", "Community Division"]
+    },
+    "Social Inclusion": {
+        increases: ["Social Stability", "Economic Participation", "Innovation Rate", "Mental Health", "Community Strength"],
+        decreases: ["Social Conflict", "Economic Inequality", "Mental Health Issues"]
+    },
+
+    // FUTURE FACTORS
+    "Space Colonization": {
+        increases: ["Scientific Knowledge", "Resource Access", "Innovation Rate", "International Cooperation", "Human Survival"],
+        decreases: ["Earth Resource Dependency", "Population Pressure", "Resource Limitations"]
+    },
+    "Genetic Innovation": {
+        increases: ["Disease Prevention", "Food Production", "Life Expectancy", "Medical Treatment", "Scientific Knowledge"],
+        decreases: ["Genetic Diseases", "Agricultural Vulnerability", "Healthcare Costs"]
+    },
+    "Quantum Computing": {
+        increases: ["Computing Power", "Scientific Discovery", "Cryptography", "Drug Development", "Financial Modeling"],
+        decreases: ["Current Encryption", "Computing Limitations", "Processing Time"]
+    },
+    "Virtual Reality": {
+        increases: ["Remote Work", "Education Access", "Entertainment Options", "Training Efficiency", "Social Connection"],
+        decreases: ["Physical Interaction", "Reality Connection", "Traditional Education"]
+    },
+    "Clean Energy": {
+        increases: ["Environmental Health", "Energy Independence", "Economic Sustainability", "Air Quality", "Job Creation"],
+        decreases: ["Carbon Emissions", "Energy Costs", "Pollution"]
+    },
+    "Robot Integration": {
+        increases: ["Production Efficiency", "Work Safety", "Innovation Rate", "Economic Output", "Precision"],
+        decreases: ["Manual Labor", "Employment Options", "Human Error"]
+    },
+    "Brain-Computer Interface": {
+        increases: ["Medical Treatment", "Human Capability", "Communication", "Disability Support", "Learning Speed"],
+        decreases: ["Privacy", "Neural Security", "Human Independence"]
+    },
+    "Longevity Research": {
+        increases: ["Life Expectancy", "Healthcare Quality", "Scientific Knowledge", "Quality of Life", "Productivity"],
+        decreases: ["Age-Related Disease", "Healthcare Costs", "Population Turnover"]
+    },
+    "Weather Control": {
+        increases: ["Agricultural Stability", "Disaster Prevention", "Water Management", "Economic Stability", "Human Safety"],
+        decreases: ["Climate Uncertainty", "Natural Disasters", "Crop Loss"]
+    },
+    "Artificial Life": {
+        increases: ["Biological Understanding", "Medical Research", "Innovation Rate", "Resource Production", "Environmental Solutions"],
+        decreases: ["Natural Systems", "Biodiversity Risk", "Ecological Balance"]
+    },
+
+    // RESOURCE FACTORS
+    "Energy Storage": {
+        increases: ["Renewable Energy", "Grid Stability", "Energy Independence", "Economic Efficiency", "Technology Access"],
+        decreases: ["Energy Waste", "Power Outages", "Carbon Emissions"]
+    },
+    "Rare Materials": {
+        increases: ["Technology Production", "Innovation Rate", "Economic Value", "Industrial Capability", "Strategic Importance"],
+        decreases: ["Resource Availability", "Price Stability", "Environmental Health"]
+    },
+    "Food Production": {
+        increases: ["Food Security", "Economic Stability", "Public Health", "Rural Development", "Export Potential"],
+        decreases: ["Hunger", "Food Prices", "Import Dependency"]
+    },
+    "Water Management": {
+        increases: ["Water Access", "Agricultural Output", "Public Health", "Ecosystem Health", "Economic Stability"],
+        decreases: ["Water Scarcity", "Drought Impact", "Environmental Stress"]
+    },
+    "Mineral Reserves": {
+        increases: ["Industrial Production", "Economic Growth", "Technology Development", "Construction", "Energy Storage"],
+        decreases: ["Resource Scarcity", "Environmental Impact", "Economic Vulnerability"]
+    },
+    "Land Use": {
+        increases: ["Food Production", "Urban Development", "Economic Activity", "Housing Availability", "Infrastructure"],
+        decreases: ["Natural Habitats", "Biodiversity", "Environmental Health"]
+    },
+    "Marine Resources": {
+        increases: ["Food Security", "Economic Activity", "Biodiversity", "Tourism", "Scientific Knowledge"],
+        decreases: ["Ocean Health", "Species Loss", "Ecosystem Balance"]
+    },
+    "Recycling Efficiency": {
+        increases: ["Resource Availability", "Environmental Health", "Economic Efficiency", "Waste Reduction", "Sustainability"],
+        decreases: ["Resource Depletion", "Pollution", "Waste Management Costs"]
+    },
+    "Alternative Materials": {
+        increases: ["Resource Efficiency", "Innovation Rate", "Environmental Protection", "Economic Sustainability", "Product Diversity"],
+        decreases: ["Resource Dependency", "Environmental Impact", "Material Costs"]
+    },
+    "Waste Reduction": {
+        increases: ["Environmental Health", "Resource Efficiency", "Economic Savings", "Public Health", "Urban Cleanliness"],
+        decreases: ["Pollution", "Resource Depletion", "Management Costs"]
+    }
+};
+
+        // Group nodes by category
+        const nodeCategories = {
+    'Environmental': [
+        'Global Temperature',
+        'Biodiversity',
+        'Ocean Health',
+        'Air Quality',
+        'Forest Coverage',
+        'Fresh Water Access',
+        'Soil Quality',
+        'Arctic Ice Coverage',
+        'Coral Reef Health',
+        'Carbon Emissions'
+    ],
+    'Social': [
+        'Education Access',
+        'Healthcare Access',
+        'Income Equality',
+        'Gender Equality',
+        'Food Security',
+        'Social Mobility',
+        'Cultural Diversity',
+        'Digital Access',
+        'Housing Affordability',
+        'Social Trust'
+    ],
+    'Economic': [
+        'Employment Rate',
+        'Economic Growth',
+        'Market Stability',
+        'Innovation Rate',
+        'Trade Balance',
+        'Small Business Viability',
+        'Consumer Confidence',
+        'Infrastructure Quality',
+        'Energy Security',
+        'Resource Efficiency'
+    ],
+    'Political': [
+        'Democratic Freedom',
+        'Government Transparency',
+        'International Cooperation',
+        'Peace Index',
+        'Rule of Law',
+        'Civil Rights',
+        'Political Stability',
+        'Diplomatic Relations',
+        'Local Governance',
+        'Policy Innovation'
+    ],
+    'Technological': [
+        'Digital Security',
+        'AI Development',
+        'Renewable Tech',
+        'Biotech Progress',
+        'Space Technology',
+        'Information Access',
+        'Digital Privacy',
+        'Tech Ethics',
+        'Scientific Research',
+        'Digital Infrastructure'
+    ],
+    'Health': [
+        'Mental Health',
+        'Physical Activity',
+        'Disease Prevention',
+        'Healthcare Quality',
+        'Nutrition Levels',
+        'Addiction Rates',
+        'Life Expectancy',
+        'Child Health',
+        'Elder Care',
+        'Public Health Education'
+    ],
+    'Cultural': [
+        'Arts Funding',
+        'Heritage Preservation',
+        'Media Diversity',
+        'Sports Participation',
+        'Creative Expression',
+        'Traditional Knowledge',
+        'Cultural Exchange',
+        'Entertainment Access',
+        'Language Diversity',
+        'Religious Freedom'
+    ],
+    'Urban': [
+        'Public Transportation',
+        'Green Spaces',
+        'Urban Planning',
+        'Waste Management',
+        'Traffic Flow',
+        'Building Safety',
+        'Noise Pollution',
+        'Public Space',
+        'Urban Agriculture',
+        'Smart City Integration'
+    ],
+    'Community': [
+        'Volunteer Rate',
+        'Social Services',
+        'Community Centers',
+        'Youth Programs',
+        'Elder Integration',
+        'Neighborhood Safety',
+        'Civic Engagement',
+        'Local Business',
+        'Public Events',
+        'Social Inclusion'
+    ],
+    'Future': [
+        'Space Colonization',
+        'Genetic Innovation',
+        'Quantum Computing',
+        'Virtual Reality',
+        'Clean Energy',
+        'Robot Integration',
+        'Brain-Computer Interface',
+        'Longevity Research',
+        'Weather Control',
+        'Artificial Life'
+    ]
+};
+
+        // Current state of all nodes
+        let nodeValues = { ...initialNodes };
+        let updatingNodes = new Set();
+
+        function calculateImpact(changeAmount, relationship = 'increases') {
+            const baseImpact = relationship === 'increases' ? 0.3 : -0.2;
+            return changeAmount * baseImpact;
+        }
+
+        // Update the updateRelatedNodes function to use animations
+        async function updateRelatedNodes(nodeName, newValue, oldValue) {
+            const relationships = nodeRelationships[nodeName];
+            if (!relationships) return;
+
+            const change = newValue - oldValue;
+            const impactFactor = 0.3; // 30% impact on related nodes
+
+            // Handle increases relationships
+            if (relationships.increases) {
+                const promises = relationships.increases.map(relatedNode => {
+                if (nodeValues.hasOwnProperty(relatedNode)) {
+                    const currentValue = nodeValues[relatedNode];
+                    const adjustment = change * impactFactor;
+                    const newRelatedValue = Math.max(0, Math.min(100, currentValue + adjustment));
+                        return animateSlider(relatedNode, newRelatedValue, 800); // Slightly faster than primary
+                    }
+                    return Promise.resolve();
+                });
+                await Promise.all(promises);
+            }
+
+            // Handle decreases relationships
+            if (relationships.decreases) {
+                const promises = relationships.decreases.map(relatedNode => {
+                if (nodeValues.hasOwnProperty(relatedNode)) {
+                    const currentValue = nodeValues[relatedNode];
+                    const adjustment = -(change * impactFactor);
+                    const newRelatedValue = Math.max(0, Math.min(100, currentValue + adjustment));
+                        return animateSlider(relatedNode, newRelatedValue, 800); // Slightly faster than primary
+                    }
+                    return Promise.resolve();
+                });
+                await Promise.all(promises);
+            }
+
+            updateStatusPanel();
+        }
+
+        function updateSliderValue(nodeName, value) {
+            const slider = document.querySelector(`[data-node="${nodeName}"]`);
+            const valueDisplay = document.querySelector(`[data-value="${nodeName}"]`);
+            if (slider && valueDisplay) {
+                slider.value = value;
+                valueDisplay.textContent = Math.round(value) + '%';
+                saveState(); // Save state after each update
+            }
+        }
+
+        function updateStatusPanel() {
+            const statusGrid = document.getElementById('statusGrid');
+            statusGrid.innerHTML = '';
+
+            Object.entries(nodeCategories).forEach(([category, nodes]) => {
+                const avgValue = nodes.reduce((sum, node) => sum + nodeValues[node], 0) / nodes.length;
+                const statusItem = document.createElement('div');
+                statusItem.className = 'status-item';
+                statusItem.innerHTML = `
+                    <span>${category} Balance</span>
+                    <div>${Math.round(avgValue)}%</div>
+                `;
+                statusGrid.appendChild(statusItem);
+            });
+        }
+
+        function createSliders() {
+            const slidersGrid = document.getElementById('slidersGrid');
+            
+            Object.entries(nodeCategories).forEach(([category, nodes]) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                categoryDiv.innerHTML = `<h3>${category}</h3>`;
+
+                nodes.forEach(nodeName => {
+                    const sliderContainer = document.createElement('div');
+                    sliderContainer.className = 'slider-container';
+                    sliderContainer.innerHTML = `
+                        <div class="slider-header">
+                            <span class="slider-label">${nodeName}</span>
+                            <span class="slider-value" data-value="${nodeName}">${Math.round(nodeValues[nodeName])}%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="${nodeValues[nodeName]}"
+                               class="slider" data-node="${nodeName}">
+                    `;
+
+                    const slider = sliderContainer.querySelector('.slider');
+                    
+                    let lastValue = nodeValues[nodeName];
+                    let timeoutId = null;
+                    let slideStartValue = null;
+                    
+                    // Handle continuous updates without timeline entries
+                    slider.addEventListener('input', (e) => {
+                        const newValue = Number(e.target.value);
+                        
+                        // Store the start value when sliding begins
+                        if (slideStartValue === null) {
+                            slideStartValue = lastValue;
+                        }
+                        
+                        nodeValues[nodeName] = newValue;
+                        updateSliderValue(nodeName, newValue);
+                        
+                        // Update related nodes in real-time
+                        const relationships = nodeRelationships[nodeName];
+                        if (relationships) {
+                            const change = newValue - lastValue;
+                            const impactFactor = 0.3; // 30% impact
+                            
+                            // Handle increases
+                            if (relationships.increases) {
+                                relationships.increases.forEach(relatedNode => {
+                                    if (nodeValues.hasOwnProperty(relatedNode)) {
+                                        const currentValue = nodeValues[relatedNode];
+                                        const adjustment = change * impactFactor;
+                                        const newRelatedValue = Math.max(0, Math.min(100, currentValue + adjustment));
+                                        nodeValues[relatedNode] = newRelatedValue;
+                                        updateSliderValue(relatedNode, newRelatedValue);
+                                    }
+                                });
+                            }
+                            
+                            // Handle decreases
+                            if (relationships.decreases) {
+                                relationships.decreases.forEach(relatedNode => {
+                                    if (nodeValues.hasOwnProperty(relatedNode)) {
+                                        const currentValue = nodeValues[relatedNode];
+                                        const adjustment = -(change * impactFactor);
+                                        const newRelatedValue = Math.max(0, Math.min(100, currentValue + adjustment));
+                                        nodeValues[relatedNode] = newRelatedValue;
+                                        updateSliderValue(relatedNode, newRelatedValue);
+                                    }
+                                });
+                            }
+                            
+                            updateStatusPanel();
+                        }
+                        
+                        lastValue = newValue;
+                    });
+                    
+                    // Handle the final update with timeline entry
+                    slider.addEventListener('change', async (e) => {
+                        const newValue = Number(e.target.value);
+                        
+                        // Only add to timeline if value actually changed
+                        if (Math.round(slideStartValue) !== Math.round(newValue)) {
+                            // Track relationship effects
+                            const effects = [];
+                            const relationships = nodeRelationships[nodeName];
+                            if (relationships) {
+                                const change = newValue - slideStartValue;
+                                const impactFactor = 0.3;
+                                
+                                if (relationships.increases) {
+                                    relationships.increases.forEach(relatedNode => {
+                                        if (nodeValues.hasOwnProperty(relatedNode)) {
+                                            const adjustment = change * impactFactor;
+                                            effects.push({
+                                                node: relatedNode,
+                                                type: 'increase',
+                                                change: Math.round(adjustment)
+                                            });
+                                        }
+                                    });
+                                }
+                                
+                                if (relationships.decreases) {
+                                    relationships.decreases.forEach(relatedNode => {
+                                        if (nodeValues.hasOwnProperty(relatedNode)) {
+                                            const adjustment = -(change * impactFactor);
+                                            effects.push({
+                                                node: relatedNode,
+                                                type: 'decrease',
+                                                change: Math.round(adjustment)
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                            
+                            addTimelineEntry(
+                                'change', 
+                                `${nodeName} adjusted from ${Math.round(slideStartValue)}% to ${Math.round(newValue)}%`,
+                                effects.filter(effect => effect.change !== 0)
+                            );
+                        }
+                        
+                        // Reset the slide start value
+                        slideStartValue = null;
+                        lastValue = newValue;
+                    });
+
+                    categoryDiv.appendChild(sliderContainer);
+                });
+
+                slidersGrid.appendChild(categoryDiv);
+            });
+
+            updateStatusPanel();
+        }
+
+        // Initialize the interface
+        createSliders();
+
+        // Initialize completion animation
+        const completionAnimation = lottie.loadAnimation({
+            container: document.getElementById('completionAnimation'),
+            renderer: 'svg',
+            loop: false,
+            autoplay: false,
+            path: 'https://assets8.lottiefiles.com/packages/lf20_obhph3sh.json' // Explosive success animation
+        });
+
+        function showOverlay() {
+            document.getElementById('processingOverlay').style.display = 'block';
+        }
+
+        function hideOverlay() {
+            document.getElementById('processingOverlay').style.display = 'none';
+        }
+
+        function playCompletionAnimation() {
+            const animContainer = document.getElementById('completionAnimation');
+            animContainer.style.display = 'block';
+            animContainer.classList.add('active');
+            completionAnimation.goToAndPlay(0);
+            
+            completionAnimation.addEventListener('complete', () => {
+                setTimeout(() => {
+                    animContainer.style.display = 'none';
+                    animContainer.classList.remove('active');
+                }, 200);
+            });
+        }
+
+        async function handleAiRequest(prompt, retryCount = 0) {
+            const aiStatus = document.getElementById('aiStatus');
+            
+            // Show overlay at the start
+            if (retryCount === 0) {
+                showOverlay();
+                // Add the prompt to the timeline
+                addTimelineEntry('prompt', prompt);
+            }
+            
+            aiStatus.textContent = retryCount > 0 ? 
+                `Processing request... (Attempt ${retryCount + 1}/5)` : 
+                'Processing request...';
+            
+            try {
+                const response = await fetch('http://8.39.147.31:5000/api/ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt, retry_count: retryCount })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    if (data.retry && retryCount < 4) {
+                        // Retry the request
+                        aiStatus.textContent = `Retrying... (Attempt ${retryCount + 2}/5)`;
+                        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+                        return handleAiRequest(prompt, retryCount + 1);
+                    } else {
+                        aiStatus.textContent = `Error: ${data.error}`;
+                        return;
+                    }
+                }
+
+                // Apply the adjustments with animations
+                const adjustments = data.adjustments;
+                aiStatus.textContent = `Adjusting world parameters... (Succeeded on attempt ${retryCount + 1})`;
+
+                // Process adjustments sequentially with relationship updates
+                async function processAdjustments() {
+                const adjustmentQueue = Object.entries(adjustments);
+                    const timeline = document.getElementById('timeline');
+                    
+                    for (const [nodeName, targetValue] of adjustmentQueue) {
+                        aiStatus.textContent = `Adjusting ${nodeName}... (Succeeded on attempt ${retryCount + 1})`;
+                        
+                        const oldValue = nodeValues[nodeName];
+                        await animateSlider(nodeName, targetValue, 1000);
+                        
+                        // Track relationship effects
+                        const effects = [];
+                        const relationships = nodeRelationships[nodeName];
+                        if (relationships) {
+                            const change = targetValue - oldValue;
+                            const impactFactor = 0.3;
+                            
+                            if (relationships.increases) {
+                                relationships.increases.forEach(relatedNode => {
+                                    if (nodeValues.hasOwnProperty(relatedNode)) {
+                                        const adjustment = change * impactFactor;
+                                        effects.push({
+                                            node: relatedNode,
+                                            type: 'increase',
+                                            change: Math.round(adjustment)
+                                        });
+                                    }
+                                });
+                            }
+                            
+                            if (relationships.decreases) {
+                                relationships.decreases.forEach(relatedNode => {
+                                    if (nodeValues.hasOwnProperty(relatedNode)) {
+                                        const adjustment = -(change * impactFactor);
+                                        effects.push({
+                                            node: relatedNode,
+                                            type: 'decrease',
+                                            change: Math.round(adjustment)
+                                        });
+                                    }
+                                });
+                            }
+                        }
+                        
+                        addTimelineEntry(
+                            'change',
+                            `${nodeName} adjusted from ${Math.round(oldValue)}% to ${Math.round(targetValue)}%`,
+                            effects.filter(effect => effect.change !== 0)
+                        );
+                        
+                        // Ensure timeline is scrolled to top after each adjustment
+                        timeline.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                        
+                        await updateRelatedNodes(nodeName, targetValue, oldValue);
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                    }
+                    
+                    aiStatus.textContent = retryCount > 0 ? 
+                        `World parameters adjusted successfully! (Succeeded after ${retryCount + 1} attempts)` :
+                        'World parameters adjusted successfully!';
+
+                    // Play completion animation and hide overlay
+                    playCompletionAnimation();
+                    setTimeout(hideOverlay, 200);
+                }
+
+                // Start processing the adjustments
+                processAdjustments();
+
+            } catch (error) {
+                console.error('Error:', error);
+                if (retryCount < 4) {
+                    aiStatus.textContent = `Error occurred, retrying... (Attempt ${retryCount + 2}/5)`;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    return handleAiRequest(prompt, retryCount + 1);
+                } else {
+                    hideOverlay();
+                    aiStatus.textContent = 'Failed after 5 attempts. Please try again with a different prompt.';
+                }
+            }
+        }
+
+        // Add this function near the top with other utility functions
+        function scrollToElement(element) {
+            const offset = 100; // Offset from the top of the viewport in pixels
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+
+        // Update the animateSlider function to include scrolling
+                function animateSlider(nodeName, targetValue, duration = 1000) {
+                    return new Promise(resolve => {
+                        const slider = document.querySelector(`[data-node="${nodeName}"]`);
+                        if (!slider) {
+                            console.error(`Slider not found for node: ${nodeName}`);
+                            resolve();
+                            return;
+                        }
+
+                // Scroll to the slider's category
+                        const category = slider.closest('.category');
+                if (category) {
+                    scrollToElement(category);
+                        category.style.transition = 'background-color 0.3s';
+                        category.style.backgroundColor = 'rgba(139, 92, 246, 0.1)';
+                }
+
+                const startValue = Number(slider.value);
+                const startTime = performance.now();
+
+                        function updateSlider(currentTime) {
+                            const elapsed = currentTime - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            
+                            // Use easeInOutCubic for smooth animation
+                            const easing = progress < 0.5
+                                ? 4 * progress * progress * progress
+                                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+                            
+                            const currentValue = startValue + (targetValue - startValue) * easing;
+                            
+                            // Update slider and related values
+                            slider.value = currentValue;
+                            nodeValues[nodeName] = currentValue;
+                            updateSliderValue(nodeName, currentValue);
+
+                            if (progress < 1) {
+                                requestAnimationFrame(updateSlider);
+                            } else {
+                                // Ensure final value is exactly the target value
+                                slider.value = targetValue;
+                                nodeValues[nodeName] = targetValue;
+                                updateSliderValue(nodeName, targetValue);
+                                
+                                // Remove highlight with delay
+                        if (category) {
+                                setTimeout(() => {
+                                    category.style.backgroundColor = '';
+                                }, 300);
+                        }
+                        
+                                resolve();
+                            }
+                        }
+
+                        requestAnimationFrame(updateSlider);
+                    });
+                }
+
+        // Initialize the Lottie animation
+        const animation = lottie.loadAnimation({
+            container: document.getElementById('aiCharacter'),
+            renderer: 'svg',
+            loop: true,
+            autoplay: true,
+            path: 'https://assets2.lottiefiles.com/packages/lf20_GofK09iPAE.json' // Cute robot animation
+        });
+
+        // Optional: Add interaction
+        const aiCharacter = document.getElementById('aiCharacter');
+        aiCharacter.addEventListener('mouseenter', () => {
+            animation.setSpeed(1.5); // Speed up on hover
+        });
+        aiCharacter.addEventListener('mouseleave', () => {
+            animation.setSpeed(1); // Return to normal speed
+        });
+
+        // Add event listener for the AI submit button
+        document.getElementById('submitAiPrompt').addEventListener('click', () => {
+            const prompt = document.getElementById('aiPrompt').value.trim();
+            if (prompt) {
+                handleAiRequest(prompt);
+                document.getElementById('aiPrompt').value = ''; // Clear the input field
+            }
+        });
+
+        // Add event listener for Enter key in textarea
+        document.getElementById('aiPrompt').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Prevent new line
+                const prompt = e.target.value.trim();
+                if (prompt) {
+                    handleAiRequest(prompt);
+                    e.target.value = ''; // Clear the input field
+                }
+            }
+        });
+
+        // Add this function to handle timeline updates
+        function addTimelineEntry(type, content, effects = null) {
+            const timeline = document.getElementById('timeline');
+            const entry = document.createElement('div');
+            entry.className = 'timeline-item';
+            
+            if (type === 'prompt') {
+                entry.innerHTML = `
+                    <div class="timeline-prompt">🤖 ${content}</div>
+                `;
+            } else {
+                let effectsHtml = '';
+                if (effects) {
+                    effectsHtml = `
+                        <div class="timeline-effects">
+                            ${effects.map(effect => `
+                                <div class="${effect.type === 'increase' ? 'timeline-effect-increase' : 'timeline-effect-decrease'}">
+                                    ${effect.type === 'increase' ? '↗' : '↘'} ${effect.node}: ${Math.abs(effect.change)}%
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+                entry.innerHTML = `
+                    <div class="timeline-change">📊 ${content}</div>
+                    ${effectsHtml}
+                `;
+            }
+            
+            timeline.insertBefore(entry, timeline.firstChild);
+            
+            // Scroll to top of timeline
+            timeline.scrollTop = 0;
+            
+            saveState(); // Save state after adding entry
+        }
+
+        // Add timeline collapse functionality
+        const timelineCategory = document.getElementById('timelineCategory');
+        const timelineHeader = document.getElementById('timelineHeader');
+        
+        timelineHeader.addEventListener('click', () => {
+            timelineCategory.classList.toggle('collapsed');
+            saveState(); // Save collapse state
+        });
+
+        // Optional: Add keyboard shortcut to toggle timeline
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 't' && e.altKey) {
+                timelineCategory.classList.toggle('collapsed');
+            }
+        });
+
+        // Add these functions near the top of the script section
+        function saveState() {
+            // Save node values
+            localStorage.setItem('nodeValues', JSON.stringify(nodeValues));
+            
+            // Save timeline entries
+            const timeline = document.getElementById('timeline');
+            const timelineEntries = Array.from(timeline.children).map(entry => ({
+                type: entry.querySelector('.timeline-prompt') ? 'prompt' : 'change',
+                content: entry.querySelector('.timeline-prompt, .timeline-change').textContent
+            }));
+            localStorage.setItem('timelineEntries', JSON.stringify(timelineEntries));
+            
+            // Save timeline collapse state
+            const isCollapsed = timelineCategory.classList.contains('collapsed');
+            localStorage.setItem('timelineCollapsed', isCollapsed);
+        }
+
+        function loadState() {
+            // Load node values
+            const savedNodeValues = localStorage.getItem('nodeValues');
+            if (savedNodeValues) {
+                nodeValues = JSON.parse(savedNodeValues);
+            }
+            
+            // Load timeline entries
+            const savedTimelineEntries = localStorage.getItem('timelineEntries');
+            if (savedTimelineEntries) {
+                const entries = JSON.parse(savedTimelineEntries);
+                entries.reverse().forEach(entry => {
+                    addTimelineEntry(entry.type, entry.content.replace('🤖 ', '').replace('📊 ', ''));
+                });
+            }
+            
+            // Load timeline collapse state
+            const isCollapsed = localStorage.getItem('timelineCollapsed') === 'true';
+            if (isCollapsed) {
+                timelineCategory.classList.add('collapsed');
+            }
+        }
+
+        // Load saved state when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            createSliders(); // This will now use the loaded nodeValues
+            updateStatusPanel();
+            initViewToggle();
+        });
+
+        // Add a reset button to the timeline header (optional)
+        function addResetButton() {
+            const resetButton = document.createElement('button');
+            resetButton.innerHTML = '🔄';
+            resetButton.className = 'timeline-reset';
+            resetButton.title = 'Reset to defaults';
+            resetButton.style.cssText = `
+                background: none;
+                border: none;
+                color: var(--purple-light);
+                cursor: pointer;
+                font-size: 1.2em;
+                padding: 0 5px;
+                opacity: 0.7;
+                transition: opacity 0.3s;
+            `;
+            resetButton.addEventListener('mouseover', () => resetButton.style.opacity = '1');
+            resetButton.addEventListener('mouseout', () => resetButton.style.opacity = '0.7');
+            resetButton.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent timeline collapse toggle
+                if (confirm('Reset all values and clear timeline?')) {
+                    localStorage.clear();
+                    nodeValues = { ...initialNodes };
+                    document.getElementById('timeline').innerHTML = '';
+                    createSliders();
+                    updateStatusPanel();
+                    saveState();
+                }
+            });
+            
+            document.querySelector('.timeline-header').insertBefore(
+                resetButton,
+                document.querySelector('.timeline-toggle')
+            );
+        }
+
+        // Call this after the timeline is created
+        addResetButton();
+
+        // Add view switching functionality
+        function initViewToggle() {
+            const buttons = document.querySelectorAll('.view-toggle button');
+            const sliderView = document.querySelector('.slider-view');
+            const canvasContainer = document.getElementById('canvas-container');
+            const nodeListPanel = document.querySelector('.node-list-panel');
+            const mapMenu = document.querySelector('.map-menu');
+
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    button.classList.add('active');
+
+                    if (button.dataset.view === 'globe') {
+                        sliderView.style.opacity = '0';
+                        setTimeout(() => {
+                            sliderView.style.display = 'none';
+                            canvasContainer.style.display = 'block';
+                            nodeListPanel.style.display = 'block';
+                            mapMenu.style.display = 'block';
+                            setTimeout(() => {
+                                canvasContainer.style.opacity = '1';
+                                nodeListPanel.style.opacity = '1';
+                                mapMenu.style.opacity = '1';
+                                if (!globeInitialized) {
+                                    initGlobe();
+                                    globeInitialized = true;
+                                }
+                            }, 50);
+                        }, 300);
+                    } else {
+                        canvasContainer.style.opacity = '0';
+                        nodeListPanel.style.opacity = '0';
+                        mapMenu.style.opacity = '0';
+                        setTimeout(() => {
+                            canvasContainer.style.display = 'none';
+                            nodeListPanel.style.display = 'none';
+                            mapMenu.style.display = 'none';
+                            sliderView.style.display = 'block';
+                            setTimeout(() => {
+                                sliderView.style.opacity = '1';
+                            }, 50);
+                        }, 300);
+                    }
+                });
+            });
+        }
+
+        // Add globe initialization flag
+        let globeInitialized = false;
+        let scene, camera, renderer, globe, nodes = new Map(), controls;
+        let valueLabels = new Map();
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let isHovering = false;
+        let currentMapType = 'default';
+        let initialNodePositions = new Map(); // Store initial positions
+
+        function initGlobe() {
+            // Scene setup
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Camera position
+            camera.position.z = 5;
+
+            // Create globe
+            const globeGeometry = new THREE.SphereGeometry(2, 64, 64);
+            const globeMaterial = new THREE.MeshPhongMaterial({
+                color: 0x222222,
+                transparent: true,
+                opacity: 0.8,
+                wireframe: true
+            });
+            globe = new THREE.Mesh(globeGeometry, globeMaterial);
+            scene.add(globe);
+
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            // Add point light
+            const pointLight = new THREE.PointLight(0xffffff, 1);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            // Add OrbitControls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 3;
+            controls.maxDistance = 10;
+            controls.rotateSpeed = 0.5;
+
+            // Create nodes
+            createGlobeNodes();
+
+            // Add event listeners
+            window.addEventListener('resize', onWindowResize, false);
+            renderer.domElement.addEventListener('mousemove', onMouseMove, false);
+
+            // Start animation loop
+            animate();
+
+            // Add map controls initialization
+            initMapControls();
+
+            // Add node list creation
+            createNodeList();
+            initControls();
+        }
+
+        function initMapControls() {
+            const mapButtons = document.querySelectorAll('.map-type-btn');
+            mapButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    mapButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const mapType = btn.dataset.type;
+                    switchMapType(mapType);
+                });
+            });
+        }
+
+        function switchMapType(type) {
+            currentMapType = type;
+            
+            // Store current node positions
+            const oldPositions = new Map();
+            nodes.forEach((node, name) => {
+                oldPositions.set(name, node.position.clone());
+            });
+
+            // Calculate new positions based on map type
+            const newPositions = calculateNewPositions(type);
+
+            // Animate nodes to new positions
+            animateNodesTransition(oldPositions, newPositions);
+        }
+
+        function calculateNewPositions(type) {
+            const positions = new Map();
+            
+            switch(type) {
+                case 'category':
+                    // Group nodes by category
+                    Object.entries(nodeCategories).forEach(([category, nodeList], categoryIndex) => {
+                        const categoryAngle = (categoryIndex / Object.keys(nodeCategories).length) * Math.PI * 2;
+                        const categoryX = Math.cos(categoryAngle) * 2;
+                        const categoryZ = Math.sin(categoryAngle) * 2;
+                        
+                        nodeList.forEach((nodeName, index) => {
+                            const angle = (index / nodeList.length) * Math.PI * 0.5 - Math.PI * 0.25;
+                            const radius = 0.5;
+                            const x = categoryX + Math.cos(angle) * radius;
+                            const y = Math.sin(angle) * radius;
+                            const z = categoryZ + Math.cos(angle) * radius;
+                            positions.set(nodeName, new THREE.Vector3(x, y, z));
+                        });
+                    });
+                    break;
+
+                case 'influence':
+                    // Position nodes based on their number of connections
+                    Object.entries(nodeRelationships).forEach(([nodeName, rels]) => {
+                        const connections = (rels.increases?.length || 0) + (rels.decreases?.length || 0);
+                        const angle = Math.random() * Math.PI * 2;
+                        const radius = 1 + (connections / 20); // More connected nodes are further out
+                        const phi = Math.acos(-1 + (Math.random() * 2));
+                        positions.set(nodeName, new THREE.Vector3(
+                            radius * Math.sin(phi) * Math.cos(angle),
+                            radius * Math.sin(phi) * Math.sin(angle),
+                            radius * Math.cos(phi)
+                        ));
+                    });
+                    break;
+
+                case 'clusters':
+                    // Position nodes based on their values
+                    Object.entries(nodeValues).forEach(([nodeName, value]) => {
+                        const angle = (value / 100) * Math.PI * 2;
+                        const heightAngle = (value / 100) * Math.PI - Math.PI/2;
+                        const radius = 2;
+                        positions.set(nodeName, new THREE.Vector3(
+                            radius * Math.cos(heightAngle) * Math.cos(angle),
+                            radius * Math.sin(heightAngle),
+                            radius * Math.cos(heightAngle) * Math.sin(angle)
+                        ));
+                    });
+                    break;
+
+                default:
+                    // Default spherical distribution
+                    Object.keys(nodeValues).forEach(nodeName => {
+                        const phi = Math.acos(-1 + (2 * Math.random()));
+                        const theta = 2 * Math.PI * Math.random();
+                        positions.set(nodeName, new THREE.Vector3(
+                            2 * Math.sin(phi) * Math.cos(theta),
+                            2 * Math.sin(phi) * Math.sin(theta),
+                            2 * Math.cos(phi)
+                        ));
+                    });
+            }
+            
+            return positions;
+        }
+
+        function animateNodesTransition(oldPositions, newPositions) {
+            const duration = 1000;
+            const startTime = Date.now();
+
+            function updatePositions() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const eased = progress < .5 ? 
+                    4 * progress * progress * progress : 
+                    (progress - 1) * (2 * progress - 2) * (2 * progress - 2) + 1;
+
+                nodes.forEach((node, name) => {
+                    const oldPos = oldPositions.get(name);
+                    const newPos = newPositions.get(name);
+                    if (oldPos && newPos) {
+                        node.position.lerpVectors(oldPos, newPos, eased);
+                        
+                        // Update line and sprite positions
+                        const valueIndicator = valueLabels.get(name);
+                        if (valueIndicator) {
+                            const { line, sprite } = valueIndicator;
+                            const direction = node.position.clone().normalize();
+                            const lineLength = Math.pow(node.userData.value / 100, 0.5) * 1.5;
+                            
+                            // Update line
+                            const positions = line.geometry.attributes.position.array;
+                            positions[0] = node.position.x;
+                            positions[1] = node.position.y;
+                            positions[2] = node.position.z;
+                            positions[3] = node.position.x + direction.x * lineLength;
+                            positions[4] = node.position.y + direction.y * lineLength;
+                            positions[5] = node.position.z + direction.z * lineLength;
+                            line.geometry.attributes.position.needsUpdate = true;
+                            
+                            // Update sprite
+                            sprite.position.set(
+                                node.position.x + direction.x * (lineLength + 0.1),
+                                node.position.y + direction.y * (lineLength + 0.1),
+                                node.position.z + direction.z * (lineLength + 0.1)
+                            );
+                        }
+                    }
+                });
+
+                if (progress < 1) {
+                    requestAnimationFrame(updatePositions);
+                }
+            }
+
+            updatePositions();
+        }
+
+        function createGlobeNodes() {
+            Object.entries(nodeValues).forEach(([nodeName, value]) => {
+                const phi = Math.acos(-1 + (2 * Math.random()));
+                const theta = 2 * Math.PI * Math.random();
+                const radius = 2;
+                
+                const x = radius * Math.sin(phi) * Math.cos(theta);
+                const y = radius * Math.sin(phi) * Math.sin(theta);
+                const z = radius * Math.cos(phi);
+
+                const geometry = new THREE.SphereGeometry(0.05, 32, 32);
+                const material = new THREE.MeshPhongMaterial({
+                    color: getNodeColor(value),
+                    emissive: getNodeColor(value),
+                    emissiveIntensity: value / 100,
+                });
+
+                const nodeMesh = new THREE.Mesh(geometry, material);
+                nodeMesh.position.set(x, y, z);
+                nodeMesh.userData.name = nodeName;
+                nodeMesh.userData.value = value;
+
+                globe.add(nodeMesh);
+                nodes.set(nodeName, nodeMesh);
+                // Store initial position relative to globe's center
+                initialNodePositions.set(nodeName, new THREE.Vector3(x, y, z));
+
+                // Add value indicator line
+                const lineLength = Math.pow(value / 100, 0.5) * 1.5;
+                const direction = new THREE.Vector3(x, y, z).normalize();
+                
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(x, y, z),
+                    new THREE.Vector3(
+                        x + direction.x * lineLength,
+                        y + direction.y * lineLength,
+                        z + direction.z * lineLength
+                    )
+                ]);
+                
+                const lineMaterial = new THREE.LineBasicMaterial({ 
+                    color: getNodeColor(value),
+                    transparent: true,
+                    opacity: 0.7
+                });
+                
+                const line = new THREE.Line(lineGeometry, lineMaterial);
+                globe.add(line);
+
+                // Add value text sprite
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 64;
+                canvas.height = 32;
+                
+                context.fillStyle = 'white';
+                context.font = '24px Arial';
+                context.textAlign = 'center';
+                context.fillText(Math.round(value) + '%', canvas.width/2, canvas.height/2);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const spriteMaterial = new THREE.SpriteMaterial({ 
+                    map: texture,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                
+                const sprite = new THREE.Sprite(spriteMaterial);
+                const spritePosition = new THREE.Vector3(
+                    x + direction.x * (lineLength + 0.1),
+                    y + direction.y * (lineLength + 0.1),
+                    z + direction.z * (lineLength + 0.1)
+                );
+                sprite.position.copy(spritePosition);
+                sprite.scale.set(0.3, 0.15, 1);
+                
+                globe.add(sprite);
+                valueLabels.set(nodeName, { line, sprite });
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            // Update all sprites to face camera
+            globe.children.forEach(child => {
+                if (child.isSprite) {
+                    child.quaternion.copy(camera.quaternion);
+                }
+            });
+
+            // Handle rotation to target
+            if (targetRotation && !controls.enabled) {
+                globe.quaternion.slerp(targetRotation, 0.05);
+                
+                // Check if rotation is complete
+                if (globe.quaternion.angleTo(targetRotation) < 0.01) {
+                    controls.enabled = true;
+                    // Don't set targetRotation to null to maintain the position
+                }
+            }
+
+            if (!isHovering && !activeNode) {
+                globe.rotation.y += 0.001;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(Array.from(nodes.values()));
+
+            if (intersects.length > 0) {
+                const node = intersects[0].object;
+                showTooltip(node, event);
+                document.body.style.cursor = 'pointer';
+            } else {
+                hideTooltip();
+                document.body.style.cursor = 'default';
+            }
+        }
+
+        function getNodeColor(value, category) {
+            // Create a color gradient from red (low) through yellow to green (high)
+            const hue = (value / 100) * 0.4; // Increased range for more color variation
+            const saturation = 0.8;
+            const lightness = 0.5;
+            return new THREE.Color().setHSL(hue, saturation, lightness);
+        }
+
+        // Update the updateNodeValue function to update lines and sprites
+        function updateNodeValue(nodeName, value) {
+            const nodeMesh = nodes.get(nodeName);
+            if (nodeMesh) {
+                const category = nodeMesh.userData.category;
+                const newColor = getNodeColor(value, category);
+                nodeMesh.material.color = newColor;
+                nodeMesh.material.emissive = newColor;
+                nodeMesh.material.emissiveIntensity = value / 100;
+                nodeMesh.userData.value = value;
+
+                const valueIndicator = valueLabels.get(nodeName);
+                if (valueIndicator) {
+                    const { line, sprite } = valueIndicator;
+                    const direction = nodeMesh.position.clone().normalize();
+                    const lineLength = Math.pow(value / 100, 0.5) * 1.5;
+
+                    // Update line
+                    const positions = line.geometry.attributes.position.array;
+                    positions[3] = nodeMesh.position.x + direction.x * lineLength;
+                    positions[4] = nodeMesh.position.y + direction.y * lineLength;
+                    positions[5] = nodeMesh.position.z + direction.z * lineLength;
+                    line.geometry.attributes.position.needsUpdate = true;
+                    line.material.color = newColor;
+
+                    // Update sprite position and text
+                    sprite.position.set(
+                        nodeMesh.position.x + direction.x * (lineLength + 0.1),
+                        nodeMesh.position.y + direction.y * (lineLength + 0.1),
+                        nodeMesh.position.z + direction.z * (lineLength + 0.1)
+                    );
+
+                    // Update sprite texture with new value
+                    const canvas = sprite.material.map.image;
+                    const context = canvas.getContext('2d');
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                    context.fillStyle = 'white';
+                    context.font = '24px Arial';
+                    context.textAlign = 'center';
+                    context.fillText(Math.round(value) + '%', canvas.width/2, canvas.height/2);
+                    sprite.material.map.needsUpdate = true;
+                }
+            }
+        }
+
+        function showTooltip(node, event) {
+            const tooltip = document.querySelector('.tooltip');
+            tooltip.style.display = 'block';
+            tooltip.style.left = event.clientX + 10 + 'px';
+            tooltip.style.top = event.clientY + 10 + 'px';
+            tooltip.innerHTML = `
+                <div class="tooltip-title">${node.userData.name}</div>
+                <div class="tooltip-value">Value: ${Math.round(node.userData.value)}%</div>
+            `;
+
+            // Stop globe rotation
+            isHovering = true;
+
+            // Highlight the hovered node
+            node.material.emissiveIntensity = node.userData.value / 50; // Increase glow
+            
+            // Highlight the corresponding line and value
+            const valueIndicator = valueLabels.get(node.userData.name);
+            if (valueIndicator) {
+                valueIndicator.line.material.opacity = 1;
+                valueIndicator.sprite.material.opacity = 1;
+            }
+        }
+
+        function hideTooltip() {
+            document.querySelector('.tooltip').style.display = 'none';
+            isHovering = false;
+
+            // Reset all nodes to normal state
+            nodes.forEach((node) => {
+                node.material.emissiveIntensity = node.userData.value / 100;
+                const valueIndicator = valueLabels.get(node.userData.name);
+                if (valueIndicator) {
+                    valueIndicator.line.material.opacity = 0.7;
+                    valueIndicator.sprite.material.opacity = 0.8;
+                }
+            });
+        }
+
+        let activeNode = null;
+        let targetRotation = null;
+
+        function createNodeList() {
+            const nodeList = document.getElementById('nodeList');
+            let intervalId = null;
+            const startInterval = (nodeName, delta) => {
+                if (intervalId) return; // Prevent multiple intervals
+                adjustNodeValue(nodeName, delta);
+                intervalId = setInterval(() => {
+                    adjustNodeValue(nodeName, delta);
+                }, 100); // Adjust every 100ms while holding
+            };
+
+            const stopInterval = () => {
+                if (intervalId) {
+                    clearInterval(intervalId);
+                    intervalId = null;
+                }
+            };
+
+            Object.entries(nodeValues)
+                .sort(([a], [b]) => a.localeCompare(b))
+                .forEach(([nodeName, value]) => {
+                    const item = document.createElement('div');
+                    item.className = 'node-list-item';
+                    item.innerHTML = `
+                        <button class="node-list-btn minus-btn">-</button>
+                        <div class="node-details">
+                            <span class="node-list-item-name">${nodeName}</span>
+                            <span class="node-list-item-value">${Math.round(value)}%</span>
+                        </div>
+                        <button class="node-list-btn plus-btn">+</button>
+                    `;
+                    
+                    const nodeDetails = item.querySelector('.node-details');
+                    nodeDetails.addEventListener('click', () => focusNode(nodeName));
+
+                    const minusBtn = item.querySelector('.minus-btn');
+                    const plusBtn = item.querySelector('.plus-btn');
+
+                    // Add mousedown and touchstart events for continuous adjustment
+                    minusBtn.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        startInterval(nodeName, -1);
+                    });
+                    plusBtn.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        startInterval(nodeName, 1);
+                    });
+
+                    // Add touch events for mobile
+                    minusBtn.addEventListener('touchstart', (e) => {
+                        e.stopPropagation();
+                        startInterval(nodeName, -1);
+                    });
+                    plusBtn.addEventListener('touchstart', (e) => {
+                        e.stopPropagation();
+                        startInterval(nodeName, 1);
+                    });
+
+                    // Stop on mouse/touch end
+                    ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(evt => {
+                        minusBtn.addEventListener(evt, stopInterval);
+                        plusBtn.addEventListener(evt, stopInterval);
+                    });
+
+                    nodeList.appendChild(item);
+                });
+
+            // Stop interval if mouse leaves the window
+            window.addEventListener('mouseup', stopInterval);
+            window.addEventListener('blur', stopInterval);
+        }
+
+        function adjustNodeValue(nodeName, delta) {
+            const currentValue = nodeValues[nodeName];
+            const newValue = Math.max(0, Math.min(100, currentValue + delta));
+            
+            if (newValue !== currentValue) {
+                nodeValues[nodeName] = newValue;
+                
+                // Update the node list display
+                const listItems = document.querySelectorAll('.node-list-item');
+                const listItem = Array.from(listItems).find(item => 
+                    item.querySelector('.node-list-item-name').textContent === nodeName
+                );
+                if (listItem) {
+                    listItem.querySelector('.node-list-item-value').textContent = `${Math.round(newValue)}%`;
+                }
+                
+                // Update the globe visualization
+                updateNodeValue(nodeName, newValue);
+                
+                // Update the slider if it exists
+                const slider = document.querySelector(`input[data-node="${nodeName}"]`);
+                if (slider) {
+                    slider.value = newValue;
+                    const valueDisplay = slider.parentElement.querySelector('.slider-value');
+                    if (valueDisplay) {
+                        valueDisplay.textContent = `${Math.round(newValue)}%`;
+                    }
+                }
+                
+                // Update status panel
+                updateStatusPanel();
+                
+                // Add to timeline
+                addTimelineEntry('change', `${nodeName} adjusted from ${Math.round(currentValue)}% to ${Math.round(newValue)}%`);
+                
+                // Save state
+                saveState();
+            }
+        }
+
+        // Update controls event handling
+        function initControls() {
+            controls.addEventListener('start', () => {
+                if (activeNode) {
+                    // Deactivate node when user starts rotating
+                    activeNode = null;
+                    targetRotation = null;
+                    hideTooltip();
+                    document.querySelectorAll('.node-list-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    controls.enabled = true;
+                }
+            });
+        }
+
+        function focusNode(nodeName) {
+            const node = nodes.get(nodeName);
+            if (!node) return;
+
+            // Toggle active state
+            if (activeNode === nodeName) {
+                // Deactivate
+                activeNode = null;
+                targetRotation = null;
+                document.querySelectorAll('.node-list-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                hideTooltip();
+                controls.enabled = true;
+                return;
+            }
+
+            // Update active state
+            activeNode = nodeName;
+            document.querySelectorAll('.node-list-item').forEach(item => {
+                if (item.querySelector('.node-list-item-name').textContent === nodeName) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            // Get the initial position and apply globe's current rotation
+            const initialPos = initialNodePositions.get(nodeName).clone();
+            const globeRotation = new THREE.Matrix4();
+            globeRotation.makeRotationFromQuaternion(globe.quaternion);
+            initialPos.applyMatrix4(globeRotation);
+            
+            // Calculate the rotation needed to bring the node to the front
+            const targetQuaternion = new THREE.Quaternion();
+            const rotationMatrix = new THREE.Matrix4();
+            
+            // Calculate rotation to bring node to front
+            const targetPosition = new THREE.Vector3(0, 0, 1);
+            const currentToTarget = new THREE.Quaternion().setFromUnitVectors(
+                initialPos.normalize(),
+                targetPosition
+            );
+            
+            // Combine with current globe rotation
+            targetRotation = currentToTarget.multiply(globe.quaternion);
+
+            // Temporarily disable orbit controls during rotation
+            controls.enabled = false;
+
+            // Show node data
+            showTooltip(node, {
+                clientX: window.innerWidth / 2,
+                clientY: window.innerHeight / 2
+            });
+        }
+
+        // Add orientation detection and handling
+        function checkOrientation() {
+            const overlay = document.getElementById('orientationOverlay');
+            
+            if (window.innerWidth < 768) {  // Mobile device detection
+                if (window.innerHeight > window.innerWidth) {  // Portrait mode
+                    overlay.style.display = 'flex';
+                    // Try to force landscape if supported
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape').catch(() => {
+                            // Silently fail if not supported
+                        });
+                    }
+                } else {  // Landscape mode
+                    overlay.style.display = 'none';
+                }
+            } else {  // Desktop/tablet
+                overlay.style.display = 'none';
+            }
+        }
+
+        // Check orientation on load and orientation change
+        window.addEventListener('load', checkOrientation);
+        window.addEventListener('resize', checkOrientation);
+        window.addEventListener('orientationchange', checkOrientation);
+    </script>
+</body>
 </html>
